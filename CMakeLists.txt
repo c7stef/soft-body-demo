@@ -5,6 +5,10 @@ project(GreedyColoring
     DESCRIPTION "Greedy coloring visualizer"
     LANGUAGES CXX)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 find_package(CURL REQUIRED)
 
