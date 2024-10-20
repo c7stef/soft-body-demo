@@ -91,7 +91,7 @@ void Nod::update()
 
 bool Nod::hitInside(sf::Vector2f coords) const
 {
-    return Util::distanta(position, coords) < circleRadius;
+    return Util::distance(position, coords) < circleRadius;
 }
 
 void Nod::adjustTextColor()
