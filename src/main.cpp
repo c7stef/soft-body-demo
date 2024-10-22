@@ -11,8 +11,6 @@
 #include <string>
 #include <cmath>
 
-#include <stdio.h>
-
 sf::ContextSettings getContextSettings()
 {
     sf::ContextSettings settings {};
@@ -52,7 +50,10 @@ int main()
     Button startColoringButton { "Start Coloring"};
     startColoringButton.setPosition({10, 10});
 
-    Button loadGraphButton { "Load Graph", [&](){ graf.openFileDialogAndLoad(); } };
+    Button loadGraphButton { "Load Graph", [&](){
+        graf.openFileDialogAndLoad();
+        forceSystem.reload();
+    } };
     loadGraphButton.setPosition({startColoringButton.getBounds().x + 20, 10});
     loadGraphButton.setStyle(Button::Secondary);
 

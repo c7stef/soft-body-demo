@@ -30,13 +30,14 @@ public:
 
     NodeList& getNodes() { return noduri; }
 
+    const Nod& node(int index) const { return noduri[index]; }
     Nod& node(int index) { return noduri[index]; }
-    bool isEdge(int x, int y) { return adiacenta[x][y]; }
+    bool isEdge(int x, int y) const { return adiacenta[x][y]; }
 
     void selectEdge(int x, int y);
     void deselectEdge(int x, int y);
 
-    NoduriSSize nodeCount() { return static_cast<NoduriSSize>(noduri.size()); }
+    NoduriSSize nodeCount() const { return static_cast<NoduriSSize>(noduri.size()); }
 
 private:
     AdjacencyMatrix adiacenta {};

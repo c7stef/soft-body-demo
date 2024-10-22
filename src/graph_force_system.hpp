@@ -16,6 +16,7 @@ public:
     }
 
     void update();
+    void reload();
 
     void sendLeftButtonPressed(sf::Vector2f coords);
     void sendLeftButtonReleased(sf::Vector2f coords);
@@ -33,10 +34,33 @@ private:
 
     bool isDragged(int index) { return dragging && index == draggedNodeIndex; }
 
-    static constexpr float kelastic = 0.2f;
-    static constexpr float distNoduri = 170.0f;
+    static constexpr float springConstant = 5.f;
+    static constexpr float dampingConstant = .3f;
+    static constexpr float restDistance = 170.0f;
+    static constexpr float stepSize = 0.1f;
 
-    static constexpr float dragSmoothness = 0.4f;
+    // static constexpr float dragSmoothness = 0.4f;
+
+    class SystemState
+    {
+    public:
+        SystemState(Graf::NoduriSSize count);
+
+        float& x(int index);
+        float& y(int index);
+        float& xDot(int index);
+        float& yDot(int index);
+
+        void next(const Graf& graf);
+
+    private:
+        SystemState getDiffs(const Graf& graf);
+
+        Graf::NoduriSSize count;
+        std::vector<float> values;
+    };
+
+    SystemState state{graf.nodeCount()};
 };
 
 #endif // GRAPH_FORCE_SYSTEM_HPP
