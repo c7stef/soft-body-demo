@@ -34,9 +34,12 @@ private:
 
     bool isDragged(int index) { return dragging && index == draggedNodeIndex; }
 
-    static constexpr float springConstant = 5.f;
-    static constexpr float dampingConstant = .3f;
+    static constexpr float springConstant = 4.f;
+    static constexpr float dampingConstant = 2.0f;
     static constexpr float restDistance = 170.0f;
+    static constexpr float airResistance = 1.5f;
+    static constexpr float fieldScale = 8e4f;
+
     static constexpr float stepSize = 0.1f;
 
     // static constexpr float dragSmoothness = 0.4f;

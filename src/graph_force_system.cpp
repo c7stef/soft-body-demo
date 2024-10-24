@@ -54,14 +54,26 @@ GraphForceSystem::SystemState GraphForceSystem::SystemState::getDiffs(const Graf
         diffs.x(i) = xDot(i);
         diffs.y(i) = yDot(i);
 
-        diffs.xDot(i) = 0;
-        diffs.yDot(i) = 0;
+        diffs.xDot(i) = -airResistance * xDot(i);
+        diffs.yDot(i) = -airResistance * yDot(i);
 
         for (int j = 0; j < count; j++) {
+            float dist = Util::distance({x(i), y(i)}, {x(j), y(j)});
+            auto distSquared{dist * dist};
+            auto distAdjusted{dist + 10.f};
+            auto distAdjustedSquared{distAdjusted * distAdjusted};
+
+            sf::Vector2f directionAway{
+                (x(i) - x(j)) / distAdjusted,
+                (y(i) - y(j)) / distAdjusted
+            };
+
+            diffs.xDot(i) += fieldScale * directionAway.x / distAdjustedSquared;
+            diffs.yDot(i) += fieldScale * directionAway.y / distAdjustedSquared;
+
             if (i == j || !graf.isEdge(i, j))
                 continue;
 
-            float dist = Util::distance({x(i), y(i)}, {x(j), y(j)});
             float stretch = restDistance / dist;
 
             auto computeDeltas = [&](float iVal, float jVal, float iValDot, float jValDot)
@@ -73,8 +85,8 @@ GraphForceSystem::SystemState GraphForceSystem::SystemState::getDiffs(const Graf
                         + (x(j) - x(i)) * xDot(j)
                         + (y(i) - y(j)) * yDot(i)
                         + (y(j) - y(i)) * yDot(j)
-                    ) / (dist * dist);
-                
+                    ) / (distSquared);
+
                 return std::make_pair(delta, deltaDot);
             };
 
