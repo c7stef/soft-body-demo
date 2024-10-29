@@ -10,8 +10,8 @@
 class Nod : public sf::Drawable
 {
 public:
-    Nod(const std::string& content = {});
-    Nod(int value);
+    Nod(const std::string& content, const sf::Font& font);
+    Nod(int value, const sf::Font& font);
 
     void setPosition(const sf::Vector2f& newPos);
     void setPosition(float x, float y) { setPosition({x, y}); }

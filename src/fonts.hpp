@@ -5,10 +5,8 @@
 
 namespace Fonts
 {
-    extern sf::Font textFont;
-    extern sf::Font numberFont;
-
-    void initFonts();
+    sf::Font textFont();
+    sf::Font numberFont();
 }
 
 #endif // FONTS_HPP

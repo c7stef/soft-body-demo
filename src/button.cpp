@@ -1,11 +1,10 @@
 #include "button.hpp"
 
 #include "background.hpp"
-#include "fonts.hpp"
 #include "utilities.hpp"
 
-Button::Button(std::string text, std::function<void()> action) :
-    displayText { text, Fonts::textFont },
+Button::Button(std::string text, const sf::Font& font, std::function<void()> action) :
+    displayText { text, font },
     callback { action }
 {
     displayText.setCharacterSize(fontSize);

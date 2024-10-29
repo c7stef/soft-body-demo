@@ -2,7 +2,6 @@
 #define GRAF_HPP
 
 #include "nod.hpp"
-#include <numeric>
 
 #include <SFML/Graphics.hpp>
 
@@ -12,7 +11,10 @@
 class Graf : public sf::Drawable
 {
 public:
-    Graf() {}
+    Graf(const sf::Font& font)
+        : font{font}
+    {
+    }
 
     using NodeList = std::vector<Nod>;
     using AdjacencyMatrix = std::vector<std::vector<int>>;
@@ -41,6 +43,7 @@ public:
 
 private:
     AdjacencyMatrix adiacenta {};
+    const sf::Font& font;
 
     class EdgeInfo
     {

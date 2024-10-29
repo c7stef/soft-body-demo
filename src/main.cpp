@@ -8,8 +8,11 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <ostream>
 #include <string>
 #include <cmath>
+
+#include <iostream>
 
 sf::ContextSettings getContextSettings()
 {
@@ -30,7 +33,9 @@ sf::Vector2f getEventXY(const T& eventData)
 
 int main()
 {
-    Fonts::initFonts();
+    auto textFont{Fonts::textFont()};
+    auto numberFont{Fonts::numberFont()};
+
 
     sf::RenderWindow window {
         sf::VideoMode(Util::windowSize.x, Util::windowSize.y),
@@ -43,20 +48,20 @@ int main()
 
     Background bg {};
 
-    Graf graf {};
+    Graf graf { numberFont };
     GraphColorizer colorizer { graf };
     GraphForceSystem forceSystem { graf };
 
-    Button startColoringButton { "Start Coloring"};
+    Button startColoringButton { "Start Coloring", textFont };
     startColoringButton.setPosition({10, 10});
 
-    Button loadGraphButton { "Load Graph", [&](){
+    Button loadGraphButton { "Load Graph", textFont, [&](){
         graf.openFileDialogAndLoad();
         forceSystem.reload();
     } };
     loadGraphButton.setPosition({startColoringButton.getBounds().x + 20, 10});
-    loadGraphButton.setStyle(Button::Secondary);
 
+    loadGraphButton.setStyle(Button::Secondary);
     startColoringButton.setAction([&]()
         {
             loadGraphButton.disable();
@@ -121,6 +126,6 @@ int main()
 
         window.display();
     }
-
+    
     return 0;
 }

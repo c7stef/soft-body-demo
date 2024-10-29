@@ -1,18 +1,15 @@
 #include "nod.hpp"
 
 #include "background.hpp"
-#include "fonts.hpp"
 #include "utilities.hpp"
-
-#include <iostream>
 
 const fColor Nod::textColorDark { 0, 0, 0, 200 };
 const fColor Nod::textColorLight { 255, 255, 255 };
 
 const fColor Nod::defaultHighlightColor { 38, 52, 79, 80 };
 
-Nod::Nod(const std::string& content) :
-    displayText { content, Fonts::numberFont }
+Nod::Nod(const std::string& content, const sf::Font& font) :
+    displayText { content, font }
 {
     backgroundCircle.setFillColor(currentColor);
 
@@ -22,8 +19,8 @@ Nod::Nod(const std::string& content) :
     setPosition(0, 0);
 }
 
-Nod::Nod(int value) :
-    Nod { std::to_string(value) }
+Nod::Nod(int value, const sf::Font& font) :
+    Nod { std::to_string(value), font }
 {
 }
 

@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <SFML/Graphics/Font.hpp>
 #include <functional>
 #include <string>
 
@@ -17,7 +18,7 @@ public:
         Secondary
     };
 
-    Button(std::string text, std::function<void()> action = {});
+    Button(std::string text, const sf::Font& font, std::function<void()> action = {});
 
     void update();
 

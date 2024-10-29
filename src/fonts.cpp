@@ -2,13 +2,18 @@
 
 #include <filesystem>
 
-sf::Font Fonts::textFont {};
-sf::Font Fonts::numberFont {};
+std::filesystem::path font_dir_path{FONT_DIR};
 
-void Fonts::initFonts()
+sf::Font Fonts::textFont()
 {
-    std::filesystem::path font_dir_path{FONT_DIR};
+    sf::Font font{};
+    font.loadFromFile(font_dir_path / "Poppins-Regular.ttf");
+    return font;
+};
 
-    textFont.loadFromFile(font_dir_path / "Poppins-Regular.ttf");
-    numberFont.loadFromFile(font_dir_path / "Lato-Regular.ttf");
-}
+sf::Font Fonts::numberFont()
+{
+    sf::Font font{};
+    font.loadFromFile(font_dir_path / "Lato-Regular.ttf");
+    return font;
+};

@@ -29,7 +29,7 @@ void Graf::loadFromFile(std::string filename)
 
     for (int nodeVal = 1; nodeVal <= nodeCount; nodeVal++)
     {
-        Nod newNod { nodeVal };
+        Nod newNod { nodeVal, font };
         newNod.setPosition(
             Util::windowSize.x / 2.0f + 100 * std::cos(nodeVal * 2.0f * M_PI / nodeCount),
             Util::windowSize.y / 2.0f - 100 * std::sin(nodeVal * 2.0f * M_PI / nodeCount)
