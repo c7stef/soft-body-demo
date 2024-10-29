@@ -3,26 +3,10 @@
 #include "nod.hpp"
 #include "utilities.hpp"
 #include <SFML/System/Vector2.hpp>
-#include <iostream>
 #include <utility>
 
-// sf::Vector2f GraphForceSystem::forceBetween(sf::Vector2f p1, sf::Vector2f p2)
-// {
-//     auto distance{Util::distance(p1, p2)};
-//     auto stretch{distance - restDistance};
-//     auto forceMagnitude{springConstant * stretch};
-
-//     sf::Vector2f edgeVector{ p2.x - p1.x, p2.y - p1.y};
-//     auto unitEdgeVector{Util::normalize(edgeVector)};
-
-//     return {
-//         -forceMagnitude * unitEdgeVector.x,
-//         -forceMagnitude * unitEdgeVector.y
-//     };
-// }
-
-GraphForceSystem::SystemState::SystemState(Graf::NoduriSSize nodeCount)
-    : count{nodeCount}, values(count * 4)
+GraphForceSystem::SystemState::SystemState(Graf::NoduriSSize nodeCount, const GraphForceSystem& forceSystem)
+    : count{nodeCount}, values(count * 4), forceSystem{forceSystem}
 {
 }
 
@@ -46,9 +30,78 @@ float& GraphForceSystem::SystemState::yDot(int index)
     return values[index * 4 + 3];
 }
 
+static float distanceAdjusted(sf::Vector2f a, sf::Vector2f b)
+{
+    constexpr float offset = 20.f;
+    return Util::distance(a, b) + offset;
+}
+
+static sf::Vector2f springForce(
+    sf::Vector2f targetPos,
+    sf::Vector2f targetVelocity,
+    sf::Vector2f sourcePos,
+    sf::Vector2f sourceVelocity,
+    float restDistance,
+    float springConstant,
+    float dampingConstant
+) {
+    float dist { distanceAdjusted(
+        { targetPos.x, targetPos.y },
+        { sourcePos.x, sourcePos.y }
+    ) };
+    auto distSquared { dist * dist };
+
+    float stretch = restDistance / dist;
+
+    auto computeDeltas = [&](float targetVal, float sourceVal, float targetValDot, float sourceValDot)
+    {
+        float delta = (targetVal - sourceVal) * (1 - stretch);
+        float deltaDot = (targetValDot - sourceValDot) * (1 - stretch)
+            + (targetVal - sourceVal) * stretch * (
+                (targetPos.x - sourcePos.x) * targetVelocity.x
+                + (sourcePos.x - targetPos.x) * sourceVelocity.x
+                + (targetPos.y - sourcePos.y) * targetVelocity.y
+                + (sourcePos.y - targetPos.y) * sourceVelocity.y
+            ) / (distSquared);
+
+        return std::pair { delta, deltaDot };
+    };
+
+    auto [xDelta, xDeltaDot] = computeDeltas(targetPos.x, sourcePos.x, targetVelocity.x, sourceVelocity.x);
+    auto [yDelta, yDeltaDot] = computeDeltas(targetPos.y, sourcePos.y, targetVelocity.y, sourceVelocity.y);
+
+    return {
+        -springConstant * xDelta - dampingConstant * xDeltaDot,
+        -springConstant * yDelta - dampingConstant * yDeltaDot
+    };
+}
+
+static sf::Vector2f electrostaticForce(
+    sf::Vector2f targetPos,
+    sf::Vector2f sourcePos,
+    float fieldScale
+) {
+    float dist { distanceAdjusted(
+        { targetPos.x, targetPos.y },
+        { sourcePos.x, sourcePos.y }
+    ) };
+    
+    auto distSquared { dist * dist };
+
+    sf::Vector2f directionAway {
+        (targetPos.x - sourcePos.x) / dist,
+        (targetPos.y - sourcePos.y) / dist
+    };
+
+    return {
+        fieldScale * directionAway.x / distSquared,
+        fieldScale * directionAway.y / distSquared
+    };
+}
+
 GraphForceSystem::SystemState GraphForceSystem::SystemState::getDiffs(const Graf& graf)
 {
-    GraphForceSystem::SystemState diffs{count};
+    GraphForceSystem::SystemState diffs { count, forceSystem };
     
     for (int i = 0; i < count; i++) {
         diffs.x(i) = xDot(i);
@@ -58,43 +111,46 @@ GraphForceSystem::SystemState GraphForceSystem::SystemState::getDiffs(const Graf
         diffs.yDot(i) = -airResistance * yDot(i);
 
         for (int j = 0; j < count; j++) {
-            float dist = Util::distance({x(i), y(i)}, {x(j), y(j)});
-            auto distSquared{dist * dist};
-            auto distAdjusted{dist + 10.f};
-            auto distAdjustedSquared{distAdjusted * distAdjusted};
+            auto electrostatic { electrostaticForce(
+                { x(i), y(i) },
+                { x(j), y(j) },
+                fieldScale
+            ) };
 
-            sf::Vector2f directionAway{
-                (x(i) - x(j)) / distAdjusted,
-                (y(i) - y(j)) / distAdjusted
-            };
-
-            diffs.xDot(i) += fieldScale * directionAway.x / distAdjustedSquared;
-            diffs.yDot(i) += fieldScale * directionAway.y / distAdjustedSquared;
+            diffs.xDot(i) += electrostatic.x;
+            diffs.yDot(i) += electrostatic.y;
 
             if (i == j || !graf.isEdge(i, j))
                 continue;
 
-            float stretch = restDistance / dist;
+            auto spring { springForce(
+                { x(i), y(i) },
+                { xDot(i), yDot(i) },
+                { x(j), y(j) },
+                { xDot(j), yDot(j) },
+                restDistance, springConstant, dampingConstant
+            )};
 
-            auto computeDeltas = [&](float iVal, float jVal, float iValDot, float jValDot)
-            {
-                float delta = (iVal - jVal) * (1 - stretch);
-                float deltaDot = (iValDot - jValDot) * (1 - stretch)
-                    + (iVal - jVal) * stretch * (
-                        (x(i) - x(j)) * xDot(i)
-                        + (x(j) - x(i)) * xDot(j)
-                        + (y(i) - y(j)) * yDot(i)
-                        + (y(j) - y(i)) * yDot(j)
-                    ) / (distSquared);
+            diffs.xDot(i) += spring.x;
+            diffs.yDot(i) += spring.y;
+        }
 
-                return std::make_pair(delta, deltaDot);
-            };
+        if (forceSystem.get().isDragged(i)) {
+            auto mouseForce { springForce(
+                { x(i), y(i) }, 
+                { xDot(i), yDot(i) }, 
+                {
+                    forceSystem.get().draggedNodeTargetPos.x,
+                    forceSystem.get().draggedNodeTargetPos.y
+                },
+                { 0.f, 0.f },
+                0.f,
+                springConstant * 2,
+                dampingConstant
+            ) };
 
-            auto [xDelta, xDeltaDot] = computeDeltas(x(i), x(j), xDot(i), xDot(j));
-            auto [yDelta, yDeltaDot] = computeDeltas(y(i), y(j), yDot(i), yDot(j));
-
-            diffs.xDot(i) += -springConstant * xDelta - dampingConstant * xDeltaDot;
-            diffs.yDot(i) += -springConstant * yDelta - dampingConstant * yDeltaDot;
+            diffs.xDot(i) += mouseForce.x;
+            diffs.yDot(i) += mouseForce.y;
         }
     }
 
@@ -108,26 +164,26 @@ void GraphForceSystem::SystemState::next(const Graf& graf)
             state.values[i] *= stepSize;
     };
 
-    auto stateK1{*this};
-    auto K1{stateK1.getDiffs(graf)};
+    auto stateK1 { *this };
+    auto K1 { stateK1.getDiffs(graf) };
     scaleByStepSize(K1);
 
-    auto stateK2{stateK1};
+    auto stateK2 { stateK1 };
     for (int i = 0; i < count * 4; i++)
         stateK2.values[i] += K1.values[i] / 2;
-    auto K2{stateK2.getDiffs(graf)};
+    auto K2 { stateK2.getDiffs(graf) };
     scaleByStepSize(K2);
 
-    auto stateK3{stateK1};
+    auto stateK3 { stateK1 };
     for (int i = 0; i < count * 4; i++)
         stateK3.values[i] += K2.values[i] / 2;
-    auto K3{stateK3.getDiffs(graf)};
+    auto K3 { stateK3.getDiffs(graf) };
     scaleByStepSize(K3);
 
-    auto stateK4{stateK1};
+    auto stateK4 { stateK1 };
     for (int i = 0; i < count * 4; i++)
         stateK3.values[i] += K3.values[i];
-    auto K4{stateK4.getDiffs(graf)};
+    auto K4 { stateK4.getDiffs(graf) };
     scaleByStepSize(K4);
 
     for (int i = 0; i < count * 4; i++)
@@ -136,7 +192,7 @@ void GraphForceSystem::SystemState::next(const Graf& graf)
 
 void GraphForceSystem::reload()
 {
-    state = SystemState{graf.nodeCount()};
+    state = SystemState { graf.nodeCount(), *this };
     
     for (int i = 0; i < graf.nodeCount(); i++) {
         state.x(i) = graf.node(i).getPosition().x;
@@ -148,15 +204,9 @@ void GraphForceSystem::reload()
 void GraphForceSystem::update()
 {
     state.next(graf);
-    
-    // if (dragging)
-    // {
-    //     auto newPos = Util::lerp(graf.node(draggedNodeIndex).getPosition(), draggedNodeTargetPos, dragSmoothness);
-    //     graf.node(draggedNodeIndex).setPosition(newPos);
-    // }
 
     for (int i = 0; i < graf.nodeCount(); i++)
-        graf.node(i).setPosition({state.x(i), state.y(i)});
+        graf.node(i).setPosition({ state.x(i), state.y(i) });
 }
 
 void GraphForceSystem::sendLeftButtonPressed(sf::Vector2f coords)

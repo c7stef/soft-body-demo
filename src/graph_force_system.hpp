@@ -4,6 +4,7 @@
 #include "graf.hpp"
 
 #include <SFML/Graphics.hpp>
+#include <functional>
 
 class Graf;
 
@@ -32,13 +33,13 @@ private:
     sf::Vector2f draggedNodeInitialMousePos {};
     sf::Vector2f draggedNodeTargetPos {};
 
-    bool isDragged(int index) { return dragging && index == draggedNodeIndex; }
+    bool isDragged(int index) const { return dragging && index == draggedNodeIndex; }
 
     static constexpr float springConstant = 4.f;
     static constexpr float dampingConstant = 2.0f;
     static constexpr float restDistance = 170.0f;
-    static constexpr float airResistance = 1.5f;
-    static constexpr float fieldScale = 8e4f;
+    static constexpr float airResistance = 2.5f;
+    static constexpr float fieldScale = 8e5f;
 
     static constexpr float stepSize = 0.1f;
 
@@ -47,7 +48,7 @@ private:
     class SystemState
     {
     public:
-        SystemState(Graf::NoduriSSize count);
+        SystemState(Graf::NoduriSSize count, const GraphForceSystem& forceSystem);
 
         float& x(int index);
         float& y(int index);
@@ -61,9 +62,13 @@ private:
 
         Graf::NoduriSSize count;
         std::vector<float> values;
+
+        std::reference_wrapper<const GraphForceSystem> forceSystem;
     };
 
-    SystemState state{graf.nodeCount()};
+    SystemState state{graf.nodeCount(), *this};
+
+    friend SystemState;
 };
 
 #endif // GRAPH_FORCE_SYSTEM_HPP
