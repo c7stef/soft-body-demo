@@ -17,6 +17,8 @@
 #include <iostream>
 #include <fstream>
 
+static constexpr float meshGranularity = 30.f;
+
 class MomentumObserver : public Object
 {
 public:
@@ -60,7 +62,7 @@ std::unique_ptr<Scene> makeSimulationScene(const sf::Font& textFont)
         "Load Mesh",
         textFont,
         [weakMesh, weakForceSystem](){
-            weakMesh.lock()->openFileDialogAndLoad(40.f);
+            weakMesh.lock()->openFileDialogAndLoad(meshGranularity);
             weakForceSystem.lock()->reload();
         }
     );
@@ -146,7 +148,7 @@ int main()
             }
         }
         
-        scene->update(0.016f); // Assuming a fixed delta time for simplicity
+        scene->update(0.016f);
 
         window.draw(*scene);
         window.display();
