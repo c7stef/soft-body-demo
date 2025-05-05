@@ -47,7 +47,7 @@ private:
     float currentOutlineThickness { targetOutlineThickness };
 
     static constexpr unsigned fontSize { 26 };
-    static constexpr float circleRadius { 5.f };
+    static constexpr float circleRadius { 4.f };
 
     static constexpr float transitionSmoothness { 0.1f };
 

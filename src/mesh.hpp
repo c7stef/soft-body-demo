@@ -74,7 +74,7 @@ private:
     private:
         sf::Color targetColor { 0, 0, 0, 40 };
         sf::Color currentColor { targetColor };
-        float targetThickness { 4.0f };
+        float targetThickness { 3.0f };
         float currentThickness { targetThickness };
 
         static constexpr float smoothness { 0.16f };
