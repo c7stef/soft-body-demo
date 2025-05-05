@@ -6,7 +6,6 @@
 namespace Fonts
 {
     sf::Font textFont();
-    sf::Font numberFont();
 }
 
 #endif // FONTS_HPP

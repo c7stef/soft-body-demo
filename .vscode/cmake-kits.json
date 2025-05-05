@@ -1,0 +1,6 @@
+[
+    {
+        "name": "GCC x86_64 Kit",
+        "toolchainFile": "${workspaceFolder}/x86_64-linux-gcc.cmake"
+    }
+]

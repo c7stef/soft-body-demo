@@ -16,6 +16,11 @@ sf::Vector2f Util::normalize(sf::Vector2f v)
     return { v.x / dist, v.y / dist };
 }
 
+float Util::signedArea(const sf::Vector2f& a, const sf::Vector2f b, const sf::Vector2f c)
+{
+    return 0.5f * ((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y));
+}
+
 float Util::sigmoid(float x)
 {
     return (1 / (1 + std::exp(-x)))*2-1;

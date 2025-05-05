@@ -13,11 +13,6 @@ Button::Button(std::string text, const sf::Font& font, std::function<void()> act
     setStyle(Primary);
 }
 
-void Button::update()
-{
-
-}
-
 void Button::setPosition(sf::Vector2f newPos)
 {
     position = newPos;

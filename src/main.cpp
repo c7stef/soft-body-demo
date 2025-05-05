@@ -1,18 +1,78 @@
 #include "background.hpp"
 #include "button.hpp"
 #include "fonts.hpp"
-#include "graf.hpp"
-#include "graph_colorizer.hpp"
-#include "graph_force_system.hpp"
+#include "mesh.hpp"
+#include "mesh_force_system.hpp"
 #include "utilities.hpp"
+#include "scene.hpp"
+#include "object.hpp"
 
 #include <SFML/Graphics.hpp>
 
 #include <ostream>
 #include <string>
 #include <cmath>
+#include <memory>
 
 #include <iostream>
+#include <fstream>
+
+class MomentumObserver : public Object
+{
+public:
+    MomentumObserver(std::weak_ptr<MeshForceSystem> forceSystem) :
+        forceSystem{forceSystem}
+    {
+    }
+
+    void update(float deltaTime) override
+    {
+        auto system = forceSystem.lock();
+        if (system)
+        {
+            logFile << system->getMomentum() << std::endl;
+            logFile2 << system->getAngularMomentum() << std::endl;
+        }
+    }
+
+private:
+    std::weak_ptr<MeshForceSystem> forceSystem;
+    std::ofstream logFile{"momentum_log.txt"};
+    std::ofstream logFile2{"angular_momentum_log.txt"};
+};
+
+std::unique_ptr<Scene> makeSimulationScene(const sf::Font& textFont)
+{
+    auto scene = std::make_unique<Scene>();
+
+    scene->addObject(std::make_shared<Background>());
+
+    auto mesh = std::make_shared<Mesh>(textFont);
+    scene->addObject(mesh);
+
+    auto forceSystem = std::make_shared<MeshForceSystem>(mesh);
+    scene->addObject(forceSystem);
+
+    std::weak_ptr<Mesh> weakMesh = mesh;
+    std::weak_ptr<MeshForceSystem> weakForceSystem = forceSystem;
+
+    auto loadMeshButton = std::make_shared<Button>(
+        "Load Mesh",
+        textFont,
+        [weakMesh, weakForceSystem](){
+            weakMesh.lock()->openFileDialogAndLoad(40.f);
+            weakForceSystem.lock()->reload();
+        }
+    );
+    loadMeshButton->setPosition({10, 10});
+    loadMeshButton->setStyle(Button::Secondary);
+
+    scene->addObject(loadMeshButton);
+
+    scene->addObject(std::make_shared<MomentumObserver>(forceSystem));
+
+    return scene;
+}
 
 sf::ContextSettings getContextSettings()
 {
@@ -34,40 +94,17 @@ sf::Vector2f getEventXY(const T& eventData)
 int main()
 {
     auto textFont{Fonts::textFont()};
-    auto numberFont{Fonts::numberFont()};
-
 
     sf::RenderWindow window {
         sf::VideoMode(Util::windowSize.x, Util::windowSize.y),
-        "Greedy Coloring",
+        "Softbody Demo",
         sf::Style::Titlebar | sf::Style::Close,
         getContextSettings()
     };
 
     window.setFramerateLimit(60);
 
-    Background bg {};
-
-    Graf graf { numberFont };
-    GraphColorizer colorizer { graf };
-    GraphForceSystem forceSystem { graf };
-
-    Button startColoringButton { "Start Coloring", textFont };
-    startColoringButton.setPosition({10, 10});
-
-    Button loadGraphButton { "Load Graph", textFont, [&](){
-        graf.openFileDialogAndLoad();
-        forceSystem.reload();
-    } };
-    loadGraphButton.setPosition({startColoringButton.getBounds().x + 20, 10});
-
-    loadGraphButton.setStyle(Button::Secondary);
-    startColoringButton.setAction([&]()
-        {
-            loadGraphButton.disable();
-            colorizer.start();
-        }
-    );
+    auto scene{makeSimulationScene(textFont)};
 
     while (window.isOpen())
     {
@@ -83,47 +120,35 @@ int main()
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
                     auto mouseCoords = getEventXY(event.mouseButton);
-
-                    loadGraphButton.sendLeftButtonPressed(mouseCoords);
-                    startColoringButton.sendLeftButtonPressed(mouseCoords);
-                    forceSystem.sendLeftButtonPressed(mouseCoords);
+                    scene->sendLeftButtonPressed(mouseCoords);
+                } else if (event.mouseButton.button == sf::Mouse::Right)
+                {
+                    auto mouseCoords = getEventXY(event.mouseButton);
+                    scene->sendRightButtonPressed(mouseCoords);
                 }
             }
             else if (event.type == sf::Event::MouseMoved)
             {
                 auto mouseCoords = getEventXY(event.mouseMove);
-
-                loadGraphButton.sendMouseMoved(mouseCoords);
-                startColoringButton.sendMouseMoved(mouseCoords);
-                forceSystem.sendMouseMoved(mouseCoords);
+                scene->sendMouseMoved(mouseCoords);
             }
             else if (event.type == sf::Event::MouseButtonReleased)
             {
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
                     auto mouseCoords = getEventXY(event.mouseButton);
-
-                    loadGraphButton.sendLeftButtonReleased(mouseCoords);
-                    startColoringButton.sendLeftButtonReleased(mouseCoords);
-                    forceSystem.sendLeftButtonReleased(mouseCoords);
+                    scene->sendLeftButtonReleased(mouseCoords);
                 }
             }
+            else if (event.type == sf::Event::KeyPressed)
+            {
+                scene->sendKeyPressed(event.key.code);
+            }
         }
+        
+        scene->update(0.016f); // Assuming a fixed delta time for simplicity
 
-        graf.update();
-        forceSystem.update();
-        colorizer.update();
-
-        if (colorizer.isStopped())
-            loadGraphButton.enable();
-
-        window.draw(bg);
-        window.draw(graf);
-        window.draw(colorizer);
-
-        window.draw(startColoringButton);
-        window.draw(loadGraphButton);
-
+        window.draw(*scene);
         window.display();
     }
     

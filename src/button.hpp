@@ -2,6 +2,7 @@
 #define BUTTON_HPP
 
 #include "fcolor.hpp"
+#include "object.hpp"
 
 #include <SFML/Graphics.hpp>
 
@@ -9,7 +10,7 @@
 #include <functional>
 #include <string>
 
-class Button : public sf::Drawable
+class Button : public Object
 {
 public:
     enum Style
@@ -19,8 +20,6 @@ public:
     };
 
     Button(std::string text, const sf::Font& font, std::function<void()> action = {});
-
-    void update();
 
     void setAction(std::function<void()> action) { callback = action; }
     void setPosition(sf::Vector2f position);

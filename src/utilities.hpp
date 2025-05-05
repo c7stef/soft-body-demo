@@ -9,6 +9,7 @@ namespace Util
 {
     float distance(sf::Vector2f a, sf::Vector2f b);
     sf::Vector2f normalize(sf::Vector2f v);
+    float signedArea(const sf::Vector2f& a, const sf::Vector2f b, const sf::Vector2f c);
 
     float sigmoid(float x);
 

@@ -1,9 +1,11 @@
 #ifndef BACKGROUND_HPP
 #define BACKGROUND_HPP
 
+#include "object.hpp"
+
 #include <SFML/Graphics.hpp>
 
-class Background : public sf::Drawable
+class Background : public Object
 {
 public:
     Background() {}
