@@ -247,7 +247,7 @@ void MeshForceSystem::reload()
     for (int i = 0; i < mesh.lock()->nodeCount(); i++) {
         state.x(i) = mesh.lock()->node(i).getPosition().x;
         state.y(i) = mesh.lock()->node(i).getPosition().y;
-        state.xDot(i) = state.yDot(i) = 0;
+        state.xDot(i) = state.yDot(i) = 0.f;
     }
 }
 

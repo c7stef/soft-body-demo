@@ -314,14 +314,6 @@ static sf::Vector2f rigidMLS(const sf::Vector2f& v, const std::vector<sf::Vector
         qhat[i] = q[i] - q_star;
     }
 
-    // float sum1 = 0.0f, sum2 = 0.0f;
-    // for (size_t i = 0; i < n; i++) {
-    //     sum1 += w[i] * dot(qhat[i], phat[i]);
-    //     sum2 += w[i] * dot(qhat[i], rotated(phat[i]));
-    // }
-
-    // float mu = std::sqrt(sum1*sum1 + sum2*sum2);
-
     float mu = 0.f;
     for (size_t i = 0; i < n; ++i)
         mu += w[i] * dot(phat[i], phat[i]);

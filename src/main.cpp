@@ -17,7 +17,7 @@
 #include <iostream>
 #include <fstream>
 
-static constexpr float meshGranularity = 30.f;
+static constexpr float meshGranularity = 40.f;
 
 class MomentumObserver : public Object
 {

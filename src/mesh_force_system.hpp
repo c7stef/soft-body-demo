@@ -35,7 +35,7 @@ private:
     std::weak_ptr<Mesh> mesh;
 
     bool gravity { false };
-    static constexpr float gravityStrength = 5e3f;
+    static constexpr float gravityStrength = 2e3f;
     static constexpr float groundLevel = 700.f;
 
     bool dragging { false };
@@ -47,11 +47,11 @@ private:
 
     int getClosestNodeTo(sf::Vector2f coords) const;
 
-    static constexpr float springConstant = 3e4f;
-    static constexpr float dampingConstant = 300.0f;
+    static constexpr float springConstant = 2e3f;
+    static constexpr float dampingConstant = 100.0f;
     static constexpr float airResistance = 0.f;
-    static constexpr float fieldScale = 5e6f;
-    static constexpr float areaSpringConstant = 700.f;
+    static constexpr float fieldScale = 1e6f;
+    static constexpr float areaSpringConstant = 100.f;
     static constexpr float areaDampingConstant = 0.f;
 
     static constexpr float stepSize = 0.00033f;
