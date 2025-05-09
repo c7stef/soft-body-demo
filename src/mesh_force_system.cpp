@@ -167,12 +167,7 @@ MeshForceSystem::SystemState MeshForceSystem::SystemState::getDiffs(const Mesh& 
         auto gradient_b = 0.5f * sf::Vector2f{y(tri.c) - y(tri.a), x(tri.a) - x(tri.c)};
         auto gradient_c = 0.5f * sf::Vector2f{y(tri.a) - y(tri.b), x(tri.b) - x(tri.a)};
 
-        float areaDeriv = 0.5f * (
-            (x(tri.b) - x(tri.a)) * (yDot(tri.c) - yDot(tri.a)) + (xDot(tri.b) - xDot(tri.a)) * (y(tri.c) - y(tri.a))
-          - (x(tri.c) - x(tri.a)) * (yDot(tri.b) - yDot(tri.a)) - (xDot(tri.c) - xDot(tri.a)) * (y(tri.b) - y(tri.a))
-        );
-
-        auto forceCoef = areaSpringConstant * areaDiff + areaDampingConstant * areaDeriv;
+        auto forceCoef = areaSpringConstant * areaDiff;
         
         diffs.xDot(tri.a) += -forceCoef * gradient_a.x;
         diffs.xDot(tri.b) += -forceCoef * gradient_b.x;

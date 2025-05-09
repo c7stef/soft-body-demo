@@ -49,10 +49,9 @@ private:
 
     static constexpr float springConstant = 2e3f;
     static constexpr float dampingConstant = 100.0f;
-    static constexpr float airResistance = 0.f;
+    static constexpr float airResistance = 1.f;
     static constexpr float fieldScale = 1e6f;
     static constexpr float areaSpringConstant = 100.f;
-    static constexpr float areaDampingConstant = 0.f;
 
     static constexpr float stepSize = 0.00033f;
 

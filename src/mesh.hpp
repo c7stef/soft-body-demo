@@ -55,7 +55,7 @@ private:
     std::vector<sf::Vector2f> controlPoints {};
 
     static constexpr float pointDensity = 0.8f;
-    static constexpr float scale = 0.7f;
+    static constexpr float scale = 0.6f;
     static constexpr float meshImageSpacing = 10.f;
 
     bool showImage { false };
